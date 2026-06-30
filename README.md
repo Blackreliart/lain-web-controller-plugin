@@ -2,6 +2,7 @@
 
 A universal browser userscript (Tampermonkey / Violentmonkey) that brings native Xbox controller (and compatible gamepads) support to the 3D Web/PSX version of **Serial Experiments Lain** (`3d.laingame.net`).
 
+## 📸 Preview
 ![Copland OS UI Preview](preview.png)
 
 It features an integrated **Connection Assistant (Overlay UI)** directly on the website to instantly verify your controller status and test button presses in real-time.
