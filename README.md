@@ -47,3 +47,10 @@ It features an integrated **Connection Assistant (Overlay UI)** directly on the 
 | **RT** | Look Up / Down | `q` |
 | **Select (View)** | Alternate Menu | `c` |
 | **Start (Menu)** | Start / Proceed | `v` |
+
+---
+
+## 🤖 Credits & Acknowledgments
+* Developed by [Blackreliart] with the assistance of AI (Gemini).
+* Built for the *Serial Experiments Lain* fan community. 
+* Inspired by the awesome work of the creators at `3d.laingame.net`.
