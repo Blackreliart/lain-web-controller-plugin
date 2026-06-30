@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         Universal Xbox Controller Mapper with Connect Button
 // @namespace    http://tampermonkey.net/
-// @version      4.0
-// @description  Simulates keyboard inputs using an Xbox controller with a manual connect button
+// @version      4.6
+// @description  Simulates keyboard inputs using an Xbox controller with draggable & minimizable Copland OS UI (Restricted to laingame.net)
 // @author       User
-// @match        *://*/*
+// @match        *://3d.laingame.net/*
+// @match        *://*.laingame.net/*
 // @grant        none
 // @run-at       document-start
 // @allFrames    true
@@ -35,72 +36,131 @@
     let lastState = {};
     let uiElements = {};
     let isActivated = false;
+    let isMinimized = false;
 
-    // --- CREATE UI ASSISTANT ---
+    // --- CREATE UI ASSISTANT (DRAGGABLE & MINIMIZABLE) ---
     function createUI() {
         if (!document.body || document.getElementById('gamepad-assistant-ui')) return;
 
+        // Main Container
         const container = document.createElement('div');
         container.id = 'gamepad-assistant-ui';
         container.style = `
-            position: fixed; top: 10px; left: 10px; background: rgba(15, 15, 15, 0.95);
-            color: #fff; font-family: 'Courier New', monospace; font-size: 11px; padding: 12px;
-            border-radius: 6px; border: 2px solid #00ff66; z-index: 999999;
-            box-shadow: 0 0 15px rgba(0,255,102,0.3); width: 230px; box-sizing: border-box;
+            position: fixed; top: 45px; left: 15px; background: #000000;
+            color: #00aaff; font-family: 'Courier New', monospace; font-size: 11px; padding: 12px;
+            border-radius: 0px; border: 1px solid #555555; z-index: 999999;
+            width: 240px; box-sizing: border-box; user-select: none;
         `;
 
-        const title = document.createElement('div');
-        title.innerHTML = '<strong>🎮 LAIN CONTROLLER API</strong>';
-        title.style = 'border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 8px; color: #00ff66; text-align:center;';
-        container.appendChild(title);
+        // Title Bar / Drag Handle
+        const titleBar = document.createElement('div');
+        titleBar.style = `
+            border-bottom: 1px solid #333333; padding-bottom: 6px; margin-bottom: 10px;
+            color: #ff9900; font-weight: bold; font-size: 11px; cursor: move;
+            display: flex; justify-content: space-between; align-items: center;
+        `;
+
+        const titleText = document.createElement('span');
+        titleText.innerHTML = 'main &nbsp; notes &nbsp; api';
+        titleBar.appendChild(titleText);
+
+        // Minimize Button [_]
+        const minBtn = document.createElement('span');
+        minBtn.innerText = '[_]';
+        minBtn.style = 'cursor: pointer; font-size: 10px; margin-left: 5px; color: #ff9900;';
+        titleBar.appendChild(minBtn);
+        container.appendChild(titleBar);
+
+        // Content Wrapper
+        const contentWrapper = document.createElement('div');
+        contentWrapper.id = 'gp-ui-content';
+        container.appendChild(contentWrapper);
 
         // ACTIVATION BUTTON
         const btn = document.createElement('button');
         btn.id = 'gp-connect-btn';
-        btn.innerText = '🔌 ACTIVATE CONTROLLER';
+        btn.innerText = '[ start controller ]';
         btn.style = `
-            width: 100%; padding: 8px; background: #00ff66; color: #000; font-weight: bold;
-            border: none; border-radius: 4px; cursor: pointer; margin-bottom: 8px;
-            font-family: monospace; font-size: 11px; box-shadow: 0 0 8px #00ff66;
+            width: 100%; padding: 6px; background: transparent; color: #ff9900; font-weight: bold;
+            border: 1px solid transparent; border-radius: 0px; cursor: pointer; margin-bottom: 10px;
+            font-family: 'Courier New', monospace; font-size: 12px; text-align: left; padding-left: 0;
         `;
 
-        // Click event wakes up the Gamepad API
+        btn.onmouseover = () => { if(!isActivated) { btn.style.textDecoration = 'underline'; } };
+        btn.onmouseout = () => { if(!isActivated) { btn.style.textDecoration = 'none'; } };
+
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
             isActivated = true;
-            // Force gamepad polling
             if (navigator.getGamepads) navigator.getGamepads();
-            btn.innerText = '⚡ API ACTIVE (Press Button!)';
-            btn.style.background = '#222';
-            btn.style.color = '#00ff66';
-            btn.style.border = '1px solid #00ff66';
-            btn.style.boxShadow = 'none';
-            // Set focus to the game canvas
+            btn.innerText = 'connect : active';
+            btn.style.color = '#555555';
+            btn.style.textDecoration = 'none';
+            btn.style.cursor = 'default';
+
             const canvas = document.querySelector('canvas');
             if (canvas) canvas.focus();
         });
-        container.appendChild(btn);
+        contentWrapper.appendChild(btn);
 
         const status = document.createElement('div');
         status.id = 'gp-status';
-        status.innerHTML = 'Status: <span style="color: #ff4d4d; font-weight:bold;">Awaiting Activation</span>';
-        container.appendChild(status);
+        status.innerHTML = 'connect : awaiting host';
+        status.style = 'font-size: 11px; color: #00aaff; padding-bottom: 8px; font-weight: bold;';
+        contentWrapper.appendChild(status);
 
         const btnList = document.createElement('div');
         btnList.id = 'gp-buttons';
-        btnList.style = 'margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 3px;';
-        container.appendChild(btnList);
+        btnList.style = 'margin-top: 10px; display: grid; grid-template-columns: 1fr; gap: 2px; border-top: 1px dashed #333333; padding-top: 8px;';
+        contentWrapper.appendChild(btnList);
 
         for (let btnIndex in MAPPING) {
             const btnIndicator = document.createElement('div');
             btnIndicator.id = `ui-btn-${btnIndex}`;
-            btnIndicator.innerText = MAPPING[btnIndex].name;
-            btnIndicator.style = 'background: #111; padding: 3px; border-radius: 2px; text-align: center; font-size: 9px; color: #444; border: 1px solid #222;';
+            btnIndicator.innerText = `+ ${MAPPING[btnIndex].name.toLowerCase()}`;
+            btnIndicator.style = 'background: transparent; padding: 2px 0; font-size: 10px; color: #226688;';
             btnList.appendChild(btnIndicator);
             uiElements[btnIndex] = btnIndicator;
         }
 
         document.body.appendChild(container);
+
+        // --- MINIMIZE FUNCTIONALITY ---
+        minBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            isMinimized = !isMinimized;
+            if (isMinimized) {
+                contentWrapper.style.display = 'none';
+                minBtn.innerText = '[+]';
+                container.style.width = '180px';
+            } else {
+                contentWrapper.style.display = 'block';
+                minBtn.innerText = '[_]';
+                container.style.width = '240px';
+            }
+        });
+
+        // --- DRAG AND DROP FUNCTIONALITY ---
+        let isDragging = false;
+        let offsetX, offsetY;
+
+        titleBar.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            offsetX = e.clientX - container.getBoundingClientRect().left;
+            offsetY = e.clientY - container.getBoundingClientRect().top;
+            titleBar.style.cursor = 'grabbing';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            container.style.left = `${e.clientX - offsetX}px`;
+            container.style.top = `${e.clientY - offsetY}px`;
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            titleBar.style.cursor = 'move';
+        });
     }
 
     // --- KEYBOARD EVENT SIMULATION ---
@@ -140,14 +200,14 @@
 
         if (!gp) {
             if (statusEl && isActivated) {
-                statusEl.innerHTML = 'Status: <span style="color: #ff9900; font-weight:bold;">Ready. Please press any controller button!</span>';
+                statusEl.innerHTML = 'connect : contacting host';
             }
             requestAnimationFrame(updateGamepad);
             return;
         }
 
         if (statusEl) {
-            statusEl.innerHTML = `Status: <span style="color: #00ff66; font-weight:bold;">CONNECTED!</span><br><span style="color:#888; font-size:9px;">${gp.id.substring(0, 25)}</span>`;
+            statusEl.innerHTML = `connect : gamepad_ready<br><span style="color:#226688; font-size:9px;">id : ${gp.id.substring(0, 15).toLowerCase()}...</span>`;
         }
 
         let currentState = {};
@@ -161,23 +221,23 @@
         // 2. Poll Analog Sticks
         if (gp.axes && gp.axes.length >= 2) {
             const xAxis = gp.axes[0]; const yAxis = gp.axes[1];
-            if (xAxis < -STICK_THRESHOLD) currentState[14] = true; // Left
-            if (xAxis > STICK_THRESHOLD)  currentState[15] = true; // Right
-            if (yAxis < -STICK_THRESHOLD) currentState[12] = true; // Up
-            if (yAxis > STICK_THRESHOLD)  currentState[13] = true; // Down
+            if (xAxis < -STICK_THRESHOLD) currentState[14] = true;
+            if (xAxis > STICK_THRESHOLD)  currentState[15] = true;
+            if (yAxis < -STICK_THRESHOLD) currentState[12] = true;
+            if (yAxis > STICK_THRESHOLD)  currentState[13] = true;
         }
 
         // UI Live Update
-        for (let btnIndex in MAPPING) {
-            if (uiElements[btnIndex] && uiElements[btnIndex].style) {
-                if (currentState[btnIndex]) {
-                    uiElements[btnIndex].style.background = '#00ff66';
-                    uiElements[btnIndex].style.color = '#000';
-                    uiElements[btnIndex].style.fontWeight = 'bold';
-                } else {
-                    uiElements[btnIndex].style.background = '#111';
-                    uiElements[btnIndex].style.color = '#888';
-                    uiElements[btnIndex].style.fontWeight = 'normal';
+        if (!isMinimized) {
+            for (let btnIndex in MAPPING) {
+                if (uiElements[btnIndex] && uiElements[btnIndex].style) {
+                    if (currentState[btnIndex]) {
+                        uiElements[btnIndex].style.color = '#ff9900';
+                        uiElements[btnIndex].style.fontWeight = 'bold';
+                    } else {
+                        uiElements[btnIndex].style.color = '#00aaff';
+                        uiElements[btnIndex].style.fontWeight = 'normal';
+                    }
                 }
             }
         }
