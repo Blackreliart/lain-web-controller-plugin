@@ -6,10 +6,15 @@ It features an integrated **Connection Assistant (Overlay UI)** directly on the 
 
 ---
 
+## ⚠️ CRITICAL NOTE BEFORE PLAYING
+> **DO NOT change or remap the keyboard controls in the game's built-in settings menu.** > This script is hardcoded to mimic the exact default keyboard layout of the game. If you alter the mapping inside the game website's options, the controller configuration will break completely! Keep everything at default.
+
+---
+
 ## 🚀 Features
 * **Global Domain Support:** Works seamlessly across the entire website and embedded game iFrames.
 * **Live UI Assistant:** Displays a visual overlay to check if the browser successfully detects your gamepad.
-* **1:1 Button Mapping:** Exactly tailored to match the original game layout shown in the settings.
+* **1:1 Button Mapping:** Exactly tailored to match the original game layout.
 * **Analog Stick Support:** Use either the D-Pad or the Left Analog Stick for movement.
 
 ## 🛠️ Installation
@@ -22,15 +27,13 @@ It features an integrated **Connection Assistant (Overlay UI)** directly on the 
 ## 🎮 How to Use in Game
 
 1. Navigate to the game on [3d.laingame.net](https://3d.laingame.net/game.html).
-2. Look at the top-left corner and click the green button: **"🔌 CONTROLLER AKTIVIEREN"** (Activate Controller). *Note: Browsers strictly require a manual user click before allowing gamepad access!*
+2. Look at the top-left corner and click the green button: **"🔌 ACTIVATE CONTROLLER"**. *Note: Modern browsers strictly require a manual user click on the page before allowing gamepad API access!*
 3. Immediately press the **A button** (or any button) on your Xbox controller a few times.
-4. Once the overlay status switches to **"VERBUNDEN!"** (Connected), you are ready to play!
+4. Once the overlay status switches to **"CONNECTED!"**, you are ready to play!
 
 ---
 
-### Controls & Button Mapping:
-
-> ⚠️ **IMPORTANT NOTE:** Please do **NOT** change or remap the keyboard controls in the game's built-in settings menu. This script mimics the exact default layout shown in the game instructions. Changing the in-game mapping will break the controller configuration.
+### Controls & Default Mapping:
 
 | Xbox Controller | Game Function | Emulated Keyboard Key |
 | :--- | :--- | :--- |
